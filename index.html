@@ -671,6 +671,69 @@
   box-shadow: 0 3px 10px rgba(79,70,229,0.35);
 }
 
+/* Dashboard cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.card-grid .dash-card {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  background: rgba(255,255,255,0.7);
+  box-shadow: 0 8px 24px rgba(15,23,42,0.04);
+  border: 1px solid rgba(148,163,184,0.35);
+}
+.card-grid .dash-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+.card-grid .dash-card p {
+  margin: 0;
+}
+.card-grid .tiny {
+  font-size: 0.75rem;
+}
+.card-grid .dash-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+/* Pequenos utilitários do gestor de ensaios */
+.rehearsal-song-row {
+  margin-bottom: 0.5rem;
+}
+.tiny-gap .col {
+  padding-right: 0.25rem;
+}
+.tiny-divider {
+  border: 0;
+  border-top: 1px dashed rgba(148,163,184,0.5);
+  margin: 0.5rem 0;
+}
+
+/* Modo impressão do folheto */
+@media print {
+  body {
+    margin: 0;
+    background: #fff;
+  }
+  .no-print, .tabs, header, footer {
+    display: none !important;
+  }
+  #tab-programa {
+    display: block !important;
+  }
+  #previewContainer {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+}
+
 </style>
 
 <style>
@@ -702,56 +765,6 @@
 }
 .use-modal-list button:hover{ background:#e0e7ff; }
 @keyframes fadeIn{ from{opacity:0; transform:scale(.95);} to{opacity:1; transform:scale(1);} }
-
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-.card-grid .dash-card {
-  padding: 0.75rem 0.9rem;
-  border-radius: 0.75rem;
-  background: rgba(255,255,255,0.7);
-  box-shadow: 0 8px 24px rgba(15,23,42,0.04);
-  border: 1px solid rgba(148,163,184,0.35);
-}
-.card-grid .dash-card h3 {
-  margin: 0 0 0.35rem;
-  font-size: 0.95rem;
-}
-.card-grid .dash-card p {
-  margin: 0;
-}
-.card-grid .tiny {
-  font-size: 0.75rem;
-}
-.card-grid .dash-actions {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  margin-top: 0.25rem;
-}
-
-
-@media print {
-  body {
-    margin: 0;
-    background: #fff;
-  }
-  .no-print, .tabs, header, footer {
-    display: none !important;
-  }
-  #tab-programa {
-    display: block !important;
-  }
-  #previewContainer {
-    box-shadow: none;
-    border: none;
-    padding: 0;
-  }
-}
 
 </style>
 <style>
@@ -1089,41 +1102,48 @@ body.lit-gold {
 
 <main>
   <div class="card">
+    
     <nav class="tabs">
-      <button type="button" class="active" data-tab="tab-programa"><span class="dot"></span> Programa</button>
+      <button type="button" class="active" data-tab="tab-dashboard"><span class="dot"></span> Página inicial</button>
+      <button type="button" data-tab="tab-programa"><span class="dot"></span> Programa</button>
       <button type="button" data-tab="tab-catalogo"><span class="dot"></span> Catálogo</button>
       <button type="button" data-tab="tab-historico"><span class="dot"></span> Histórico</button>
       <button type="button" data-tab="tab-ensaios"><span class="dot"></span> Ensaios</button>
     </nav>
 
-    <section id="tab-programa" class="tab active">
 
+
+    <section id="tab-dashboard" class="tab active">
+      <h2>Página inicial</h2>
+      <section id="dashboard" class="card-grid" aria-label="Resumo rápido">
+        <div class="card dash-card">
+          <h3>Celebração do dia</h3>
+          <p id="dashLitTitle" class="strong small muted">—</p>
+          <p class="tiny"><span id="dashLitSeason">—</span> · <span id="dashLitCycle">Ano —</span></p>
+        </div>
+        <div class="card dash-card">
+          <h3>Programa</h3>
+          <p class="small"><span id="dashFilledParts">0</span> de <span id="dashTotalParts">0</span> partes com cânticos.</p>
+        </div>
+        <div class="card dash-card">
+          <h3>Histórico</h3>
+          <p class="small"><span id="dashUsageCount">0</span> registos de cânticos usados.</p>
+        </div>
+        <div class="card dash-card">
+          <h3>Atalhos</h3>
+          <p class="tiny">Vai rapidamente para:</p>
+          <div class="dash-actions">
+            <button type="button" class="btn secondary tiny" data-go-tab="tab-programa">Programa</button>
+            <button type="button" class="btn secondary tiny" data-go-tab="tab-catalogo">Catálogo</button>
+            <button type="button" class="btn secondary tiny" data-go-tab="tab-ensaios">Ensaios</button>
+            <button type="button" class="btn secondary tiny" data-go-tab="tab-historico">Histórico</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="tab-programa" class="tab">
       <form id="programForm">
-        <section id="dashboard" class="card-grid" aria-label="Resumo rápido">
-          <div class="card dash-card">
-            <h3>Celebração do dia</h3>
-            <p id="dashLitTitle" class="strong small muted">—</p>
-            <p class="tiny"><span id="dashLitSeason">—</span> · <span id="dashLitCycle">Ano —</span></p>
-          </div>
-          <div class="card dash-card">
-            <h3>Programa</h3>
-            <p class="small"><span id="dashFilledParts">0</span> de <span id="dashTotalParts">0</span> partes com cânticos.</p>
-          </div>
-          <div class="card dash-card">
-            <h3>Histórico</h3>
-            <p class="small"><span id="dashUsageCount">0</span> registos de cânticos usados.</p>
-          </div>
-          <div class="card dash-card">
-            <h3>Atalhos</h3>
-            <p class="tiny">Vai rapidamente para:</p>
-            <div class="dash-actions">
-              <button type="button" class="btn secondary tiny" data-go-tab="tab-programa">Programa</button>
-              <button type="button" class="btn secondary tiny" data-go-tab="tab-catalogo">Catálogo</button>
-              <button type="button" class="btn secondary tiny" data-go-tab="tab-historico">Histórico</button>
-            </div>
-          </div>
-        </section>
-
         <h2>Programa litúrgico</h2>
         <p class="small">Escolhe a data e os cânticos. O tempo litúrgico, o ciclo e o número do domingo são calculados automaticamente.</p>
 
@@ -1426,61 +1446,38 @@ body.lit-gold {
 
     </section>
 
-    <section 
-id="tab-ensaios" class="tab">
-      <h2>Ensaios e partituras</h2>
-      <p class="small">Organiza ensaios, cânticos e links de partituras. Podes também gerar uma mensagem para o WhatsApp.</p>
-
-      <div class="card" style="margin-bottom:1rem;">
-        <h3>Novo ensaio</h3>
-        <form id="rehearsalForm">
-          <div class="row">
-            <div class="col">
-              <label for="rehearsalDate">Data do ensaio</label>
-              <input type="date" id="rehearsalDate">
-            </div>
-            <div class="col">
-              <label for="rehearsalTime">Hora</label>
-              <input type="time" id="rehearsalTime">
-            </div>
+    <section id="tab-ensaios" class="tab">
+      <h2>Ensaios – mensagem de WhatsApp</h2>
+      <form id="rehearsalForm">
+        <p class="small">Gera uma mensagem com o programa do domingo para enviar ao grupo.</p>
+        <div class="row">
+          <div class="col">
+            <label for="rehearsalDate">Data do ensaio</label>
+            <input type="date" id="rehearsalDate">
           </div>
-          <div class="row">
-            <div class="col">
-              <label for="rehearsalPlace">Local</label>
-              <input type="text" id="rehearsalPlace" placeholder="ex.: Igreja Paroquial">
-            </div>
-            <div class="col">
-              <label for="rehearsalProgram">Programa (domingo)</label>
-              <select id="rehearsalProgram">
-                <option value="">— escolher domingo —</option>
-              </select>
-            </div>
+          <div class="col">
+            <label for="rehearsalTime">Hora</label>
+            <input type="time" id="rehearsalTime">
           </div>
-          <label for="rehearsalNotes">Notas gerais</label>
-          <textarea id="rehearsalNotes" placeholder="ex.: Trabalhar entradas da comunhão, equilíbrio de vozes."></textarea>
-
-          <h4>Cânticos deste ensaio</h4>
-          <div id="rehearsalSongsContainer"></div>
-          <button type="button" class="btn secondary tiny" id="addRehearsalSongBtn">Adicionar cântico</button>
-
-          <div class="row" style="margin-top:0.75rem;">
-            <div class="col">
-              <button type="button" class="btn" id="saveRehearsalBtn">Guardar ensaio</button>
-            </div>
-            <div class="col text-right">
-              <button type="button" class="btn secondary" id="rehearsalWhatsAppBtn">Gerar mensagem WhatsApp</button>
-            </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label for="rehearsalPlace">Local</label>
+            <input type="text" id="rehearsalPlace" placeholder="ex.: Igreja Paroquial">
           </div>
-        </form>
-      </div>
+          <div class="col">
+            <label for="rehearsalProgram">Programa (domingo)</label>
+            <select id="rehearsalProgram">
+              <option value="">— escolher domingo —</option>
+            </select>
+          </div>
+        </div>
+        <label for="rehearsalNotes">Notas para o ensaio</label>
+        <textarea id="rehearsalNotes" placeholder="ex.: Tragam a partitura nova do ofertório."></textarea>
 
-      <div class="card">
-        <h3>Ensaios guardados</h3>
-        <p class="tiny muted" id="rehearsalListInfo">Nenhum ensaio guardado ainda.</p>
-        <div id="rehearsalList"></div>
-      </div>
+        <button type="button" class="btn" id="rehearsalWhatsAppBtn">Gerar mensagem WhatsApp</button>
+      </form>
     </section>
-
   </div>
 
 <div id="lyricsModal" class="modal" style="display:none;">

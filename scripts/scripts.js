@@ -1794,6 +1794,16 @@ document.getElementById('assemblySheetBtnNoLyrics').addEventListener('click', ()
     text += 'Programa: ' + encodeURIComponent(rec.title || '') + '%0A';
     if (rec.extraTheme) text += 'Tema extra: ' + encodeURIComponent(rec.extraTheme) + '%0A';
     text += 'Tempo litúrgico: ' + encodeURIComponent(rec.season || '') + ' | Ciclo: ' + encodeURIComponent(rec.cycle || '') + '%0A%0A';
+    if (rec.parts) {
+      text += 'Cânticos:%0A';
+      Object.keys(rec.parts).forEach(function(partId) {
+        var p = rec.parts[partId];
+        if (!p || !p.title) return;
+        var label = p.label || partId;
+        text += '- ' + encodeURIComponent(label + ': ' + p.title) + '%0A';
+      });
+      text += '%0A';
+    }
     if (notes) text += 'Notas: ' + encodeURIComponent(notes) + '%0A';
 
     const waUrl = 'https://wa.me/?text=' + text;
@@ -2378,6 +2388,7 @@ function init() {
     if (typeof initRehearsalManager === 'function') {
       initRehearsalManager();
     }
+
     // Histórico de cânticos: ligar eventos
     const monthInput = document.getElementById('songHistoryMonth');
     const sectionSelect = document.getElementById('songHistorySection');
@@ -2836,229 +2847,3 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     closeBtn.onclick = function() { m.remove(); };
   }
 };
-
-const REHEARSAL_STORE_KEY = 'coroRehearsals_v1';
-
-function loadRehearsals() {
-  try {
-    const raw = localStorage.getItem(REHEARSAL_STORE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.error('Erro ao ler ensaios', e);
-    return [];
-  }
-}
-
-function saveRehearsals(list) {
-  try {
-    localStorage.setItem(REHEARSAL_STORE_KEY, JSON.stringify(list));
-  } catch (e) {
-    console.error('Erro ao guardar ensaios', e);
-  }
-}
-
-function renderRehearsalSongsEditor(container, songs) {
-  container.innerHTML = '';
-  (songs || []).forEach((song, idx) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'rehearsal-song-row';
-    wrapper.innerHTML = `
-      <div class="row tiny-gap">
-        <div class="col">
-          <label class="tiny">Cântico</label>
-          <input type="text" data-field="title" value="${song.title || ''}" placeholder="ex.: Glória a Deus">
-        </div>
-        <div class="col">
-          <label class="tiny">Vozes</label>
-          <input type="text" data-field="voices" value="${song.voices || ''}" placeholder="ex.: S, A, T, B">
-        </div>
-      </div>
-      <div class="row tiny-gap">
-        <div class="col">
-          <label class="tiny">Partitura (link)</label>
-          <input type="url" data-field="scoreUrl" value="${song.scoreUrl || ''}" placeholder="https://...pdf">
-        </div>
-        <div class="col">
-          <label class="tiny">Notas internas</label>
-          <input type="text" data-field="notes" value="${song.notes || ''}" placeholder="ex.: rever final">
-        </div>
-      </div>
-      <div class="row tiny-gap">
-        <div class="col text-right">
-          <button type="button" class="btn secondary tiny" data-remove-song>Remover</button>
-        </div>
-      </div>
-      <hr class="tiny-divider">
-    `;
-    container.appendChild(wrapper);
-  });
-}
-
-function collectRehearsalSongs(container) {
-  const rows = Array.from(container.querySelectorAll('.rehearsal-song-row'));
-  return rows.map(row => {
-    const getVal = (sel) => {
-      const el = row.querySelector(sel);
-      return el ? el.value.trim() : '';
-    };
-    return {
-      title: getVal('input[data-field="title"]'),
-      voices: getVal('input[data-field="voices"]'),
-      scoreUrl: getVal('input[data-field="scoreUrl"]'),
-      notes: getVal('input[data-field="notes"]')
-    };
-  }).filter(s => s.title);
-}
-
-function renderRehearsalList() {
-  const container = document.getElementById('rehearsalList');
-  const info = document.getElementById('rehearsalListInfo');
-  if (!container) return;
-  const list = loadRehearsals();
-  container.innerHTML = '';
-  if (!list.length) {
-    if (info) info.textContent = 'Nenhum ensaio guardado ainda.';
-    return;
-  }
-  if (info) info.textContent = '';
-  list
-    .slice()
-    .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
-    .forEach((r, idx) => {
-      const card = document.createElement('div');
-      card.className = 'card small';
-      card.innerHTML = `
-        <div class="row">
-          <div class="col">
-            <strong>${(r.date || '—')} · ${(r.time || '—')}</strong><br>
-            <span class="tiny muted">${r.place || ''}</span>
-          </div>
-          <div class="col text-right">
-            <button type="button" class="btn secondary tiny" data-view="${r.id}">Detalhes</button>
-            <button type="button" class="btn secondary tiny" data-delete="${r.id}">Apagar</button>
-          </div>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-  container.addEventListener('click', (e) => {
-    const viewBtn = e.target.closest('button[data-view]');
-    const deleteBtn = e.target.closest('button[data-delete]');
-    if (viewBtn) {
-      const id = viewBtn.getAttribute('data-view');
-      showRehearsalDetails(id);
-    } else if (deleteBtn) {
-      const id = deleteBtn.getAttribute('data-delete');
-      const list = loadRehearsals().filter(r => r.id !== id);
-      saveRehearsals(list);
-      renderRehearsalList();
-    }
-  }, { once: true });
-}
-
-function showRehearsalDetails(id) {
-  const list = loadRehearsals();
-  const r = list.find(x => x.id === id);
-  if (!r) return;
-  let msg = `${r.date || ''} · ${r.time || ''}\n${r.place || ''}\n\n`;
-  if (r.songs && r.songs.length) {
-    msg += 'Cânticos:\n';
-    r.songs.forEach((s, i) => {
-      msg += `- ${s.title || ''}`;
-      if (s.voices) msg += ` [${s.voices}]`;
-      msg += '\n';
-      if (s.scoreUrl) msg += `  Partitura: ${s.scoreUrl}\n`;
-    });
-  }
-  if (r.notes) {
-    msg += '\nNotas:\n' + r.notes + '\n';
-  }
-  alert(msg);
-}
-
-function initRehearsalManager() {
-  const songsContainer = document.getElementById('rehearsalSongsContainer');
-  const addSongBtn = document.getElementById('addRehearsalSongBtn');
-  const saveBtn = document.getElementById('saveRehearsalBtn');
-  const waBtn = document.getElementById('rehearsalWhatsAppBtn');
-
-  if (!songsContainer) return;
-
-  let currentSongs = [];
-  renderRehearsalSongsEditor(songsContainer, currentSongs);
-
-  if (addSongBtn) {
-    addSongBtn.addEventListener('click', () => {
-      currentSongs.push({ title: '', voices: '', scoreUrl: '', notes: '' });
-      renderRehearsalSongsEditor(songsContainer, currentSongs);
-    });
-  }
-
-  songsContainer.addEventListener('click', (e) => {
-    const removeBtn = e.target.closest('button[data-remove-song]');
-    if (removeBtn) {
-      const rows = Array.from(songsContainer.querySelectorAll('.rehearsal-song-row'));
-      const idx = rows.indexOf(removeBtn.closest('.rehearsal-song-row'));
-      if (idx >= 0) {
-        currentSongs.splice(idx, 1);
-        renderRehearsalSongsEditor(songsContainer, currentSongs);
-      }
-    }
-  });
-
-  if (saveBtn) {
-    saveBtn.addEventListener('click', () => {
-      const date = (document.getElementById('rehearsalDate') || {}).value || '';
-      const time = (document.getElementById('rehearsalTime') || {}).value || '';
-      const place = (document.getElementById('rehearsalPlace') || {}).value || '';
-      const notes = (document.getElementById('rehearsalNotes') || {}).value || '';
-      const program = (document.getElementById('rehearsalProgram') || {}).value || '';
-
-      const songs = collectRehearsalSongs(songsContainer);
-      currentSongs = songs;
-
-      const list = loadRehearsals();
-      const id = 'r' + Date.now();
-      list.push({ id, date, time, place, notes, program, songs });
-      saveRehearsals(list);
-      renderRehearsalList();
-      if (typeof showToast === 'function') {
-        showToast('Ensaio guardado.', 'success');
-      }
-    });
-  }
-
-  if (waBtn) {
-    waBtn.addEventListener('click', () => {
-      const date = (document.getElementById('rehearsalDate') || {}).value || '';
-      const time = (document.getElementById('rehearsalTime') || {}).value || '';
-      const place = (document.getElementById('rehearsalPlace') || {}).value || '';
-      const notes = (document.getElementById('rehearsalNotes') || {}).value || '';
-      const songs = collectRehearsalSongs(songsContainer);
-
-      let msg = 'Ensaio do coro';
-      if (date) msg += ' – ' + date;
-      if (time) msg += ' às ' + time;
-      msg += '\n' + (place || '') + '\n\n';
-
-      if (songs.length) {
-        msg += 'Cânticos:\n';
-        songs.forEach((s, i) => {
-          msg += (i + 1) + ') ' + (s.title || '');
-          if (s.voices) msg += ' [' + s.voices + ']';
-          msg += '\n';
-        });
-      }
-      if (notes) {
-        msg += '\nNotas:\n' + notes + '\n';
-      }
-
-      const encoded = encodeURIComponent(msg);
-      const url = 'https://wa.me/?text=' + encoded;
-      window.open(url, '_blank');
-    });
-  }
-
-  renderRehearsalList();
-}
